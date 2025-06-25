@@ -18,6 +18,8 @@ export default function StakingDashboard({ stakingRecords, stats }: StakingDashb
         return 'bg-blue-100 text-blue-800';
       case 'pending':
         return 'bg-yellow-100 text-yellow-800';
+      case 'cancelled':
+        return 'bg-red-100 text-red-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
@@ -31,6 +33,8 @@ export default function StakingDashboard({ stakingRecords, stats }: StakingDashb
         return '완료';
       case 'pending':
         return '대기중';
+      case 'cancelled':
+        return '취소됨';
       default:
         return '알 수 없음';
     }
@@ -39,7 +43,7 @@ export default function StakingDashboard({ stakingRecords, stats }: StakingDashb
   return (
     <div className="space-y-6">
       {/* 통계 카드 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
         <div className="card">
           <div className="flex items-center">
             <div className="flex-shrink-0">
@@ -87,6 +91,18 @@ export default function StakingDashboard({ stakingRecords, stats }: StakingDashb
             </div>
           </div>
         </div>
+
+        <div className="card">
+          <div className="flex items-center">
+            <div className="flex-shrink-0">
+              <FiActivity className="h-8 w-8 text-red-600" />
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-500">취소</p>
+              <p className="text-2xl font-bold text-red-600">{stakingRecords.filter(record => record.status === 'cancelled').length}개</p>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* 스테이킹 내역 테이블 */}
@@ -120,7 +136,7 @@ export default function StakingDashboard({ stakingRecords, stats }: StakingDashb
                     만료일
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    예상 수익
+                    수익
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     상태
@@ -146,9 +162,19 @@ export default function StakingDashboard({ stakingRecords, stats }: StakingDashb
                       {formatDate(record.endDate)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-green-600">
-                        +{formatNumber(record.expectedReward)} QTC
-                      </div>
+                      {record.status === 'cancelled' ? (
+                        <div className="text-sm font-medium text-red-600">
+                          0 QTC (취소됨)
+                        </div>
+                      ) : record.status === 'completed' && record.actualReward !== undefined && record.actualReward !== null ? (
+                        <div className="text-sm font-medium text-green-600">
+                          +{formatNumber(record.actualReward)} QTC
+                        </div>
+                      ) : (
+                        <div className="text-sm font-medium text-gray-600">
+                          +{formatNumber(record.expectedReward)} QTC (예상)
+                        </div>
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(record.status)}`}>

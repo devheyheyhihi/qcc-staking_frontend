@@ -154,13 +154,13 @@ function AdminLoginForm({ onLogin }: { onLogin: () => void }) {
             </button>
           </div>
 
-          <div className="text-center">
+          {/* <div className="text-center">
             <div className="text-xs text-gray-500 bg-yellow-50 border border-yellow-200 rounded-md p-3">
               <p className="font-medium text-yellow-800 mb-1">💡 기본 관리자 계정</p>
               <p>비밀번호: <code className="bg-yellow-100 px-1 rounded">Test123!</code></p>
               <p className="mt-1">보안을 위해 로그인 후 비밀번호를 변경해주세요.</p>
             </div>
-          </div>
+          </div> */}
         </form>
       </div>
     </div>
@@ -175,6 +175,10 @@ function StakingListTab() {
   const [currentPage, setCurrentPage] = useState(1)
   const [statusFilter, setStatusFilter] = useState<string>('')
   const [limit, setLimit] = useState(20)
+  const [selectedStaking, setSelectedStaking] = useState<Staking | null>(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false)
+  const [isCancelling, setIsCancelling] = useState(false)
 
   const fetchStakings = async (page: number, status?: string) => {
     try {
@@ -230,6 +234,88 @@ function StakingListTab() {
     if (!hash) return '-'
     return `${hash.slice(0, 8)}...${hash.slice(-8)}`
   }
+
+  const handleRowClick = (staking: Staking) => {
+    setSelectedStaking(staking)
+    setIsModalOpen(true)
+  }
+
+  const closeModal = () => {
+    setIsModalOpen(false)
+    setSelectedStaking(null)
+  }
+
+  const closeCancelModal = () => {
+    setIsCancelModalOpen(false)
+  }
+
+  const handleCancelStaking = () => {
+    setIsCancelModalOpen(true)
+  }
+
+  const confirmCancelStaking = async () => {
+    if (!selectedStaking) return
+
+    setIsCancelling(true)
+    try {
+      const response = await fetch(`${API_BASE_URL}/staking/${selectedStaking.id}/cancel`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          walletAddress: selectedStaking.walletAddress
+        })
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
+        toast.success('스테이킹이 성공적으로 취소되었습니다.')
+        setIsCancelModalOpen(false)
+        setIsModalOpen(false)
+        setSelectedStaking(null)
+        fetchStakings(currentPage, statusFilter)
+      } else {
+        toast.error(result.message || '스테이킹 취소에 실패했습니다.')
+      }
+    } catch (error) {
+      console.error('스테이킹 취소 오류:', error)
+      toast.error('스테이킹 취소 중 오류가 발생했습니다.')
+    } finally {
+      setIsCancelling(false)
+    }
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      if (isCancelModalOpen) {
+        closeCancelModal();
+      } else if (isModalOpen) {
+        closeModal();
+      }
+    }
+  };
+
+  useEffect(() => {
+    const handleEscapeKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (isCancelModalOpen) {
+          closeCancelModal();
+        } else if (isModalOpen) {
+          closeModal();
+        }
+      }
+    };
+
+    if (isModalOpen || isCancelModalOpen) {
+      document.addEventListener('keydown', handleEscapeKey);
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscapeKey);
+    };
+  }, [isModalOpen, isCancelModalOpen]);
 
   if (loading) {
     return (
@@ -302,7 +388,11 @@ function StakingListTab() {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {stakings.map((staking) => (
-                <tr key={staking.id} className="hover:bg-gray-50">
+                <tr 
+                  key={staking.id} 
+                  className="hover:bg-gray-50 cursor-pointer transition-colors duration-200"
+                  onClick={() => handleRowClick(staking)}
+                >
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     #{staking.id}
                   </td>
@@ -323,7 +413,7 @@ function StakingListTab() {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     <div>
                       <div className="text-gray-600">예상: {formatAmount(staking.expectedReward)} QTC</div>
-                      {staking.actualReward && (
+                      {staking.actualReward != null && (
                         <div className="text-green-600 font-medium">실제: {formatAmount(staking.actualReward)} QTC</div>
                       )}
                     </div>
@@ -416,6 +506,290 @@ function StakingListTab() {
           </div>
         )}
       </div>
+
+      {/* 스테이킹 상세 모달 */}
+      {isModalOpen && selectedStaking && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div 
+            className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-gray-900">
+                  스테이킹 상세 정보 #{selectedStaking.id}
+                </h2>
+                <div className="flex gap-2">
+                  {selectedStaking.status === 'active' && (
+                    <button
+                      onClick={handleCancelStaking}
+                      className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
+                    >
+                      스테이킹 취소
+                    </button>
+                  )}
+                  <button
+                    onClick={closeModal}
+                    className="text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* 기본 정보 */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">기본 정보</h3>
+                  
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">스테이킹 ID</label>
+                      <p className="text-lg font-mono text-gray-900">#{selectedStaking.id}</p>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">상태</label>
+                      <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${STATUS_COLORS[selectedStaking.status]}`}>
+                        {STATUS_LABELS[selectedStaking.status]}
+                      </span>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">지갑 주소</label>
+                      <p className="text-sm font-mono bg-gray-100 p-2 rounded break-all">
+                        {selectedStaking.walletAddress}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 스테이킹 정보 */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">스테이킹 정보</h3>
+                  
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">스테이킹 금액</label>
+                      <p className="text-lg font-semibold text-quantum-600">
+                        {formatAmount(selectedStaking.stakedAmount)} QTC
+                      </p>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">스테이킹 기간</label>
+                      <p className="text-lg text-gray-900">{selectedStaking.stakingPeriod}일</p>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">이자율</label>
+                      <p className="text-lg text-green-600 font-semibold">{selectedStaking.interestRate}%</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 보상 정보 */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">보상 정보</h3>
+                  
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">예상 보상</label>
+                      <p className="text-lg text-gray-600">
+                        {formatAmount(selectedStaking.expectedReward)} QTC
+                      </p>
+                    </div>
+                    
+                    {selectedStaking.actualReward != null && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">실제 보상</label>
+                        <p className="text-lg text-green-600 font-semibold">
+                          {formatAmount(selectedStaking.actualReward)} QTC
+                        </p>
+                      </div>
+                    )}
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">총 반환 예정 금액</label>
+                      <p className="text-xl font-bold text-quantum-600">
+                        {formatAmount(selectedStaking.stakedAmount + (selectedStaking.actualReward ?? selectedStaking.expectedReward))} QTC
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 일정 정보 */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">일정 정보</h3>
+                  
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">스테이킹 시작일</label>
+                      <p className="text-sm text-gray-900">{formatDate(selectedStaking.startDate)}</p>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">스테이킹 종료일</label>
+                      <p className="text-sm text-gray-900">{formatDate(selectedStaking.endDate)}</p>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">생성일</label>
+                      <p className="text-sm text-gray-600">{formatDate(selectedStaking.createdAt)}</p>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">최종 수정일</label>
+                      <p className="text-sm text-gray-600">{formatDate(selectedStaking.updatedAt)}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 트랜잭션 정보 */}
+                <div className="md:col-span-2 space-y-4">
+                  <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">트랜잭션 정보</h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">입금 트랜잭션 해시</label>
+                      <div className="bg-gray-100 p-3 rounded">
+                        <p className="text-sm font-mono break-all text-gray-900">
+                          {selectedStaking.transactionHash || '없음'}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">반환 트랜잭션 해시</label>
+                      <div className="bg-gray-100 p-3 rounded">
+                        <p className="text-sm font-mono break-all text-gray-900">
+                          {selectedStaking.returnTransactionHash || '아직 반환되지 않음'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-6 flex justify-end">
+                <button
+                  onClick={closeModal}
+                  className="px-6 py-2 bg-quantum-600 text-white rounded-lg hover:bg-quantum-700 transition-colors"
+                >
+                  닫기
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 취소 확인 모달 */}
+      {isCancelModalOpen && selectedStaking && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60]"
+          onClick={closeCancelModal}
+        >
+          <div 
+            className="bg-white rounded-lg p-6 max-w-md w-full mx-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center mb-4">
+              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mr-4">
+                <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">스테이킹 취소 확인</h3>
+                <p className="text-sm text-gray-600">이 작업은 되돌릴 수 없습니다.</p>
+              </div>
+            </div>
+
+            <div className="mb-6">
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+                <div className="flex">
+                  <div className="w-5 h-5 text-yellow-400 mr-2 mt-0.5">
+                    <svg fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-medium text-yellow-800">중요 안내사항</h4>
+                    <ul className="mt-2 text-sm text-yellow-700 list-disc list-inside space-y-1">
+                      <li>중도 해지 시 보상은 지급되지 않습니다.</li>
+                      <li>원금은 100% 전액 반환됩니다.</li>
+                      <li>취소 후에는 되돌릴 수 없습니다.</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">스테이킹 ID:</span>
+                  <span className="font-medium">#{selectedStaking.id}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">스테이킹 금액:</span>
+                  <span className="font-medium">{selectedStaking.stakedAmount} QCC</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">예상 보상:</span>
+                  <span className="font-medium">{selectedStaking.expectedReward?.toFixed(8)} QCC</span>
+                </div>
+                <div className="flex justify-between border-t pt-2">
+                  <span className="text-gray-600">취소 시 받을 보상:</span>
+                  <span className="font-medium text-red-600">0 QCC</span>
+                </div>
+                <div className="flex justify-between font-semibold border-t pt-2">
+                  <span className="text-gray-900">총 반환 금액:</span>
+                  <span className="text-green-600">
+                    {selectedStaking.stakedAmount.toFixed(8)} QCC (원금만)
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={closeCancelModal}
+                disabled={isCancelling}
+                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+              >
+                취소
+              </button>
+              <button
+                onClick={confirmCancelStaking}
+                disabled={isCancelling}
+                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+              >
+                {isCancelling ? (
+                  <>
+                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    처리 중...
+                  </>
+                ) : (
+                  '스테이킹 취소'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 모달 배경 클릭으로 닫기 */}
+      {isModalOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-40"
+          onClick={closeModal}
+        />
+      )}
 
       {/* 빈 상태 */}
       {stakings.length === 0 && !loading && (

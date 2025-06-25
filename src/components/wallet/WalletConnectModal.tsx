@@ -296,13 +296,6 @@ export default function WalletConnectModal({ isOpen, onClose }: WalletConnectMod
               )}
             </div>
           )}
-
-          {/* 하단 정보 */}
-          <div className="mt-8 pt-4 border-t border-gray-200">
-          <p className="text-xs text-gray-500 text-center">
-              🔒 모든 지갑 정보는 브라우저에 안전하게 암호화되어 저장됩니다.
-          </p>
-          </div>
         </div>
       </div>
     </div>

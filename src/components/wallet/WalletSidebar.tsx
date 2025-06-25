@@ -115,7 +115,7 @@ export default function WalletSidebar({ isOpen, onClose }: WalletSidebarProps) {
             </div>
 
             {/* Private Key */}
-            {walletState.privateKey && (
+            {/* {walletState.privateKey && (
               <div className="bg-gray-50 rounded-lg p-4">
                 <div className="flex justify-between items-center mb-3">
                   <span className="text-sm font-semibold text-gray-700">개인키</span>
@@ -147,10 +147,10 @@ export default function WalletSidebar({ isOpen, onClose }: WalletSidebarProps) {
               </p>
             </div>
               </div>
-            )}
+            )} */}
 
             {/* Mnemonic */}
-            {walletState.mnemonic && (
+            {/*{walletState.mnemonic && (
               <div className="bg-gray-50 rounded-lg p-4">
                 <div className="flex justify-between items-center mb-3">
                   <span className="text-sm font-semibold text-gray-700">복구 구문</span>
@@ -190,7 +190,7 @@ export default function WalletSidebar({ isOpen, onClose }: WalletSidebarProps) {
                   )}
                 </div>
               </div>
-            )}
+            )} */}
           </div>
 
           {/* Actions */}
