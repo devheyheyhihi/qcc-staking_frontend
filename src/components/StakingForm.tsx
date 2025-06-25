@@ -208,27 +208,27 @@ export default function StakingForm({ walletBalance, walletAddress, privateKey, 
 
         {/* 스테이킹 금액 입력 */}
         <div>
-          <label className="label">스테이킹 금액 (QTC)</label>
+          <label className="label">스테이킹 금액 (QCC)</label>
           <div className="relative">
             <input
               type="number"
               step="0.01"
               min="1"
               max={walletBalance}
-              placeholder="스테이킹할 QTC 수량을 입력하세요"
+              placeholder="스테이킹할 QCC 수량을 입력하세요"
               {...register('amount', {
                 required: '스테이킹 금액을 입력해주세요',
-                min: { value: 1, message: '최소 1 QTC 이상 입력해주세요' },
+                min: { value: 1, message: '최소 1 QCC 이상 입력해주세요' },
                 max: { value: walletBalance, message: '보유 잔액을 초과할 수 없습니다' },
               })}
               className="input-field pr-20"
             />
             <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-              <span className="text-gray-500 text-sm">QTC</span>
+              <span className="text-gray-500 text-sm">QCC</span>
             </div>
           </div>
           <div className="mt-1 flex justify-between text-sm">
-            <span className="text-gray-500">보유 잔액: {formatNumber(walletBalance)} QTC</span>
+            <span className="text-gray-500">보유 잔액: {formatNumber(walletBalance)} QCC</span>
             <button
               type="button"
               onClick={() => {
@@ -252,15 +252,15 @@ export default function StakingForm({ walletBalance, walletAddress, privateKey, 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="text-center">
                 <p className="text-sm text-gray-600">스테이킹 금액</p>
-                <p className="text-xl font-bold text-gray-900">{formatNumber(amountNumber)} QTC</p>
+                <p className="text-xl font-bold text-gray-900">{formatNumber(amountNumber)} QCC</p>
               </div>
               <div className="text-center">
                 <p className="text-sm text-gray-600">예상 이자</p>
-                <p className="text-xl font-bold text-quantum-600">{formatNumber(expectedReward)} QTC</p>
+                <p className="text-xl font-bold text-quantum-600">{formatNumber(expectedReward)} QCC</p>
               </div>
               <div className="text-center">
                 <p className="text-sm text-gray-600">총 수령액</p>
-                <p className="text-xl font-bold text-green-600">{formatNumber(totalReturn)} QTC</p>
+                <p className="text-xl font-bold text-green-600">{formatNumber(totalReturn)} QCC</p>
               </div>
             </div>
           </div>

@@ -80,7 +80,7 @@ export default function WalletSidebar({ isOpen, onClose }: WalletSidebarProps) {
               <div>
                 <p className="text-quantum-100 text-sm font-medium">총 잔액</p>
                 <p className="text-3xl font-bold">
-                  {formatBalance(walletState.balance)} QTC
+                  {formatBalance(walletState.balance)} QCC
                 </p>
               </div>
               <button

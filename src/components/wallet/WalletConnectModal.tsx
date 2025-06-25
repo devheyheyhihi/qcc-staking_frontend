@@ -145,7 +145,7 @@ export default function WalletConnectModal({ isOpen, onClose }: WalletConnectMod
                   Quantum Chain 스테이킹에 오신 것을 환영합니다
                 </h3>
                 <p className="text-gray-600 text-sm">
-                  지갑을 연결하여 QTC 토큰을 스테이킹하고 보상을 받아보세요.
+                  지갑을 연결하여 QCC 토큰을 스테이킹하고 보상을 받아보세요.
             </p>
               </div>
 

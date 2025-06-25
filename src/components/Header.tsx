@@ -45,7 +45,7 @@ export default function Header() {
               <div className="flex items-center space-x-3">
                 <div className="text-right">
                   <div className="text-sm font-medium text-gray-900">
-                    {formatBalance(walletState.balance)} QTC
+                    {formatBalance(walletState.balance)} QCC
                   </div>
                   <div className="text-xs text-gray-500">
                     {formatAddress(walletState.address)}
@@ -91,7 +91,7 @@ export default function Header() {
                 <div className="px-3 space-y-3">
                   <div className="text-center">
                     <div className="text-sm font-medium text-gray-900">
-                      {formatBalance(walletState.balance)} QTC
+                      {formatBalance(walletState.balance)} QCC
                     </div>
                     <div className="text-xs text-gray-500">
                       {formatAddress(walletState.address)}
