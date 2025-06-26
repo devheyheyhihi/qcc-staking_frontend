@@ -101,7 +101,7 @@ export default function InterestRateInfo() {
               <label className="label">스테이킹 금액 (QCC)</label>
               <input
                 type="number"
-                value={calculatorAmount}
+                value={calculatorAmount || ''}
                 onChange={(e) => setCalculatorAmount(Number(e.target.value) || 0)}
                 min="1"
                 step="1"

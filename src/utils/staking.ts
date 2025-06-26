@@ -116,7 +116,13 @@ export const formatDate = (date: Date): string => {
 
 // 숫자 포맷팅 (천 단위 콤마)
 export const formatNumber = (num: number): string => {
-  return new Intl.NumberFormat('ko-KR').format(num);
+  if (Number.isInteger(num)) {
+    return new Intl.NumberFormat('ko-KR').format(num);
+  }
+  return new Intl.NumberFormat('ko-KR', {
+    minimumFractionDigits: 4,
+    maximumFractionDigits: 4,
+  }).format(num);
 };
 
 // 지갑 주소 축약
