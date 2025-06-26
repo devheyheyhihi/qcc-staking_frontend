@@ -202,7 +202,7 @@ export const restoreWalletFromMnemonic = async (
       public_key,
       address: wallet_address,
       mnemonic,
-      symbol: "QTC",
+      symbol: "QCC",
     };
     console.log("Created wallet:", { ...wallet });
 

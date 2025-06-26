@@ -51,7 +51,7 @@ export default function StakingDashboard({ stakingRecords, stats }: StakingDashb
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-500">총 스테이킹</p>
-              <p className="text-2xl font-bold text-gray-900">{formatNumber(stats.totalStaked)} QTC</p>
+              <p className="text-2xl font-bold text-gray-900">{formatNumber(stats.totalStaked)} QCC</p>
             </div>
           </div>
         </div>
@@ -63,7 +63,7 @@ export default function StakingDashboard({ stakingRecords, stats }: StakingDashb
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-500">총 수익</p>
-              <p className="text-2xl font-bold text-green-600">{formatNumber(stats.totalRewards)} QTC</p>
+              <p className="text-2xl font-bold text-green-600">{formatNumber(stats.totalRewards)} QCC</p>
             </div>
           </div>
         </div>
@@ -148,7 +148,7 @@ export default function StakingDashboard({ stakingRecords, stats }: StakingDashb
                   <tr key={record.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">
-                        {formatNumber(record.amount)} QTC
+                        {formatNumber(record.amount)} QCC
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -164,15 +164,15 @@ export default function StakingDashboard({ stakingRecords, stats }: StakingDashb
                     <td className="px-6 py-4 whitespace-nowrap">
                       {record.status === 'cancelled' ? (
                         <div className="text-sm font-medium text-red-600">
-                          0 QTC (취소됨)
+                          0 QCC (취소됨)
                         </div>
                       ) : record.status === 'completed' && record.actualReward !== undefined && record.actualReward !== null ? (
                         <div className="text-sm font-medium text-green-600">
-                          +{formatNumber(record.actualReward)} QTC
+                          +{formatNumber(record.actualReward)} QCC
                         </div>
                       ) : (
                         <div className="text-sm font-medium text-gray-600">
-                          +{formatNumber(record.expectedReward)} QTC (예상)
+                          +{formatNumber(record.expectedReward)} QCC (예상)
                         </div>
                       )}
                     </td>

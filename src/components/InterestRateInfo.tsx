@@ -72,7 +72,7 @@ export default function InterestRateInfo() {
               <div className="mt-4 pt-4 border-t border-quantum-200">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">최소 금액:</span>
-                  <span className="font-medium">1 QTC</span>
+                  <span className="font-medium">1 QCC</span>
                 </div>
                 <div className="flex justify-between text-sm mt-1">
                   <span className="text-gray-600">락업 기간:</span>
@@ -98,7 +98,7 @@ export default function InterestRateInfo() {
           {/* 입력 폼 */}
           <div className="space-y-4">
             <div>
-              <label className="label">스테이킹 금액 (QTC)</label>
+              <label className="label">스테이킹 금액 (QCC)</label>
               <input
                 type="number"
                 value={calculatorAmount}
@@ -106,7 +106,7 @@ export default function InterestRateInfo() {
                 min="1"
                 step="1"
                 className="input-field"
-                placeholder="스테이킹할 QTC 수량을 입력하세요"
+                placeholder="스테이킹할 QCC 수량을 입력하세요"
               />
             </div>
 
@@ -137,7 +137,7 @@ export default function InterestRateInfo() {
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600">스테이킹 금액:</span>
-                  <span className="text-lg font-semibold text-gray-900">{formatNumber(calculatorAmount)} QTC</span>
+                  <span className="text-lg font-semibold text-gray-900">{formatNumber(calculatorAmount)} QCC</span>
                 </div>
 
                 <div className="flex justify-between items-center">
@@ -153,12 +153,12 @@ export default function InterestRateInfo() {
                 <div className="border-t border-quantum-200 pt-4">
                   <div className="flex justify-between items-center">
                     <span className="text-gray-600">예상 이자:</span>
-                    <span className="text-xl font-bold text-green-600">+{formatNumber(calculatedReward)} QTC</span>
+                    <span className="text-xl font-bold text-green-600">+{formatNumber(calculatedReward)} QCC</span>
                   </div>
 
                   <div className="flex justify-between items-center mt-2">
                     <span className="text-gray-900 font-medium">총 수령액:</span>
-                    <span className="text-2xl font-bold text-quantum-600">{formatNumber(totalReturn)} QTC</span>
+                    <span className="text-2xl font-bold text-quantum-600">{formatNumber(totalReturn)} QCC</span>
                   </div>
                 </div>
               </div>
@@ -177,7 +177,7 @@ export default function InterestRateInfo() {
             <ol className="space-y-2 text-sm text-gray-600">
               <li className="flex items-start">
                 <span className="flex-shrink-0 w-6 h-6 bg-quantum-600 text-white rounded-full flex items-center justify-center text-xs font-bold mr-3 mt-0.5">1</span>
-                <span>지갑을 연결하고 QTC 잔액을 확인합니다</span>
+                <span>지갑을 연결하고 QCC 잔액을 확인합니다</span>
               </li>
               <li className="flex items-start">
                 <span className="flex-shrink-0 w-6 h-6 bg-quantum-600 text-white rounded-full flex items-center justify-center text-xs font-bold mr-3 mt-0.5">2</span>
@@ -185,7 +185,7 @@ export default function InterestRateInfo() {
               </li>
               <li className="flex items-start">
                 <span className="flex-shrink-0 w-6 h-6 bg-quantum-600 text-white rounded-full flex items-center justify-center text-xs font-bold mr-3 mt-0.5">3</span>
-                <span>스테이킹 지갑 주소로 QTC를 전송합니다</span>
+                <span>스테이킹 지갑 주소로 QCC를 전송합니다</span>
               </li>
               <li className="flex items-start">
                 <span className="flex-shrink-0 w-6 h-6 bg-quantum-600 text-white rounded-full flex items-center justify-center text-xs font-bold mr-3 mt-0.5">4</span>

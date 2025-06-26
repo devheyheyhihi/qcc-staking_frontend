@@ -402,7 +402,7 @@ function StakingListTab() {
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {formatAmount(staking.stakedAmount)} QTC
+                    {formatAmount(staking.stakedAmount)} QCC
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {staking.stakingPeriod}일
@@ -412,9 +412,9 @@ function StakingListTab() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     <div>
-                      <div className="text-gray-600">예상: {formatAmount(staking.expectedReward)} QTC</div>
+                      <div className="text-gray-600">예상: {formatAmount(staking.expectedReward)} QCC</div>
                       {staking.actualReward != null && (
-                        <div className="text-green-600 font-medium">실제: {formatAmount(staking.actualReward)} QTC</div>
+                        <div className="text-green-600 font-medium">실제: {formatAmount(staking.actualReward)} QCC</div>
                       )}
                     </div>
                   </td>
@@ -574,7 +574,7 @@ function StakingListTab() {
                     <div>
                       <label className="block text-sm font-medium text-gray-700">스테이킹 금액</label>
                       <p className="text-lg font-semibold text-quantum-600">
-                        {formatAmount(selectedStaking.stakedAmount)} QTC
+                        {formatAmount(selectedStaking.stakedAmount)} QCC
                       </p>
                     </div>
                     
@@ -598,7 +598,7 @@ function StakingListTab() {
                     <div>
                       <label className="block text-sm font-medium text-gray-700">예상 보상</label>
                       <p className="text-lg text-gray-600">
-                        {formatAmount(selectedStaking.expectedReward)} QTC
+                        {formatAmount(selectedStaking.expectedReward)} QCC
                       </p>
                     </div>
                     
@@ -606,7 +606,7 @@ function StakingListTab() {
                       <div>
                         <label className="block text-sm font-medium text-gray-700">실제 보상</label>
                         <p className="text-lg text-green-600 font-semibold">
-                          {formatAmount(selectedStaking.actualReward)} QTC
+                          {formatAmount(selectedStaking.actualReward)} QCC
                         </p>
                       </div>
                     )}
@@ -614,7 +614,7 @@ function StakingListTab() {
                     <div>
                       <label className="block text-sm font-medium text-gray-700">총 반환 예정 금액</label>
                       <p className="text-xl font-bold text-quantum-600">
-                        {formatAmount(selectedStaking.stakedAmount + (selectedStaking.actualReward ?? selectedStaking.expectedReward))} QTC
+                        {formatAmount(selectedStaking.stakedAmount + (selectedStaking.actualReward ?? selectedStaking.expectedReward))} QCC
                       </p>
                     </div>
                   </div>

@@ -104,7 +104,7 @@ export default function Home() {
                       스테이킹 신청 완료! 🎉
                     </p>
                     <p className="mt-1 text-sm text-gray-500">
-                      {data.amount} QTC 스테이킹이 성공적으로 신청되었습니다.
+                      {data.amount} QCC 스테이킹이 성공적으로 신청되었습니다.
                     </p>
                     <p className="mt-1 text-xs text-gray-400">
                       트랜잭션: {data.transactionHash.slice(0, 20)}...
