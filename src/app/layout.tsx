@@ -23,11 +23,6 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ko">
-      <head>
-        <link rel="icon" href="/favicon.ico" sizes="any" />
-        <link rel="shortcut icon" href="/favicon.ico" />
-        <link rel="apple-touch-icon" href="/favicon.ico" />
-      </head>
       <body className={inter.className}>
         <WalletProvider>
           <div className="min-h-screen bg-gradient-to-br from-quantum-50 to-quantum-100">
