@@ -152,6 +152,11 @@ const keyValidity = (key: string): boolean => {
   return /^[a-fA-F0-9]{64}$/.test(key);
 };
 
+// 개인키 유효성 검사 함수를 export
+export const validatePrivateKey = (key: string): boolean => {
+  return keyValidity(key);
+};
+
 interface SignedData {
   [key: string]: any;
   public_key: string;

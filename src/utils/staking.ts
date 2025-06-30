@@ -117,7 +117,7 @@ export const formatDate = (date: Date): string => {
 // 숫자 포맷팅 (천 단위 콤마)
 export const formatNumber = (num: number): string => {
   if (Number.isInteger(num)) {
-    return new Intl.NumberFormat('ko-KR').format(num);
+  return new Intl.NumberFormat('ko-KR').format(num);
   }
   return new Intl.NumberFormat('ko-KR', {
     minimumFractionDigits: 4,

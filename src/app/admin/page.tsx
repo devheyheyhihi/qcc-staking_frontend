@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { toast } from 'react-hot-toast'
+import BulkTransfer from '@/components/BulkTransfer'
 
 // API 기본 URL 설정
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
@@ -1195,7 +1196,7 @@ function AdminPasswordTab() {
 }
 
 export default function AllStakingsPage() {
-  const [activeTab, setActiveTab] = useState<'list' | 'rates' | 'password'>('list')
+  const [activeTab, setActiveTab] = useState<'list' | 'rates' | 'password' | 'bulk-transfer'>('list')
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [loading, setLoading] = useState(true)
 
@@ -1241,6 +1242,7 @@ export default function AllStakingsPage() {
   const tabs = [
     { id: 'list', name: '스테이킹 목록', icon: '📊' },
     { id: 'rates', name: '이자율 설정', icon: '⚙️' },
+    { id: 'bulk-transfer', name: '대량 전송', icon: '💸' },
     { id: 'password', name: '비밀번호 변경', icon: '🔐' }
   ]
 
@@ -1270,7 +1272,7 @@ export default function AllStakingsPage() {
               {tabs.map((tab) => (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id as 'list' | 'rates' | 'password')}
+                  onClick={() => setActiveTab(tab.id as 'list' | 'rates' | 'password' | 'bulk-transfer')}
                   className={`py-2 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
                     activeTab === tab.id
                       ? 'border-quantum-500 text-quantum-600'
@@ -1289,6 +1291,11 @@ export default function AllStakingsPage() {
         <div>
           {activeTab === 'list' && <StakingListTab />}
           {activeTab === 'rates' && <InterestRateTab />}
+          {activeTab === 'bulk-transfer' && (
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <BulkTransfer />
+            </div>
+          )}
           {activeTab === 'password' && <AdminPasswordTab />}
         </div>
 
