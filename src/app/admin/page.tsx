@@ -231,6 +231,9 @@ function StakingListTab() {
     return amount.toFixed(6)
   }
 
+  // 현재 표시된 스테이킹들의 총 금액 계산
+  const totalStakedAmount = stakings.reduce((sum, staking) => sum + staking.stakedAmount, 0)
+
   const truncateHash = (hash: string) => {
     if (!hash) return '-'
     return `${hash.slice(0, 8)}...${hash.slice(-8)}`
@@ -364,6 +367,9 @@ function StakingListTab() {
           {pagination && (
             <div className="text-sm text-gray-600">
               총 {pagination.totalItems}개 중 {((currentPage - 1) * limit) + 1}-{Math.min(currentPage * limit, pagination.totalItems)}개 표시
+              <span className="ml-4 font-semibold text-quantum-600">
+                총 스테이킹 금액: {formatAmount(totalStakedAmount)} QCC
+              </span>
             </div>
           )}
         </div>
