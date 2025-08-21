@@ -180,6 +180,27 @@ function StakingListTab() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false)
   const [isCancelling, setIsCancelling] = useState(false)
+  const [totalStats, setTotalStats] = useState<{
+    totalStakings: number
+    activeStakings: number
+    totalActiveAmount: number
+    totalEarnedRewards: number
+  } | null>(null)
+
+  const fetchTotalStats = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/staking/stats`)
+      const data = await response.json()
+
+      if (data.success) {
+        setTotalStats(data.data)
+      } else {
+        console.error('스테이킹 통계 조회 실패:', data.message)
+      }
+    } catch (error) {
+      console.error('스테이킹 통계 조회 오류:', error)
+    }
+  }
 
   const fetchStakings = async (page: number, status?: string) => {
     try {
@@ -212,6 +233,7 @@ function StakingListTab() {
 
   useEffect(() => {
     fetchStakings(currentPage, statusFilter || undefined)
+    fetchTotalStats()
   }, [currentPage, statusFilter, limit])
 
   const handlePageChange = (page: number) => {
@@ -231,13 +253,29 @@ function StakingListTab() {
     return amount.toFixed(6)
   }
 
-  // 현재 표시된 스테이킹들의 총 금액 계산
-  const totalStakedAmount = stakings.reduce((sum, staking) => sum + staking.stakedAmount, 0)
+  // 현재 표시된 스테이킹들의 총 금액 계산 (페이지별 합계용)
+  const currentPageStakedAmount = stakings.reduce((sum, staking) => sum + staking.stakedAmount, 0)
 
   const truncateHash = (hash: string) => {
     if (!hash) return '-'
     return `${hash.slice(0, 8)}...${hash.slice(-8)}`
   }
+
+  const generatePagination = (currentPage: number, totalPages: number): (number | string)[] => {
+    if (totalPages <= 7) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+  
+    if (currentPage <= 4) {
+      return [1, 2, 3, 4, 5, '...', totalPages];
+    }
+  
+    if (currentPage > totalPages - 4) {
+      return [1, '...', totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+    }
+  
+    return [1, '...', currentPage - 1, currentPage, currentPage + 1, '...', totalPages];
+  };
 
   const handleRowClick = (staking: Staking) => {
     setSelectedStaking(staking)
@@ -334,6 +372,31 @@ function StakingListTab() {
 
   return (
     <div>
+      {/* 전체 통계 정보 */}
+      {totalStats && (
+        <div className="bg-gradient-to-r from-quantum-50 to-quantum-100 rounded-lg shadow-md p-6 mb-6">
+          <h3 className="text-lg font-semibold text-quantum-800 mb-4">📊 전체 스테이킹 통계</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="bg-white rounded-lg p-4 shadow-sm">
+              <div className="text-2xl font-bold text-quantum-600">{totalStats.totalStakings.toLocaleString()}</div>
+              <div className="text-sm text-gray-600">총 스테이킹 건수</div>
+            </div>
+            <div className="bg-white rounded-lg p-4 shadow-sm">
+              <div className="text-2xl font-bold text-green-600">{totalStats.activeStakings.toLocaleString()}</div>
+              <div className="text-sm text-gray-600">활성 스테이킹 건수</div>
+            </div>
+            <div className="bg-white rounded-lg p-4 shadow-sm">
+              <div className="text-2xl font-bold text-blue-600">{formatAmount(totalStats.totalActiveAmount)} QCC</div>
+              <div className="text-sm text-gray-600">총 활성 스테이킹 금액</div>
+            </div>
+            <div className="bg-white rounded-lg p-4 shadow-sm">
+              <div className="text-2xl font-bold text-purple-600">{formatAmount(totalStats.totalEarnedRewards)} QCC</div>
+              <div className="text-sm text-gray-600">총 지급된 보상</div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 필터 및 설정 */}
       <div className="bg-white rounded-lg shadow-md p-6 mb-6">
         <div className="flex flex-wrap gap-4 items-center">
@@ -367,8 +430,8 @@ function StakingListTab() {
           {pagination && (
             <div className="text-sm text-gray-600">
               총 {pagination.totalItems}개 중 {((currentPage - 1) * limit) + 1}-{Math.min(currentPage * limit, pagination.totalItems)}개 표시
-              <span className="ml-4 font-semibold text-quantum-600">
-                총 스테이킹 금액: {formatAmount(totalStakedAmount)} QCC
+              <span className="ml-4 font-semibold text-gray-700">
+                (현재 페이지 합계: {formatAmount(currentPageStakedAmount)} QCC)
               </span>
             </div>
           )}
@@ -486,19 +549,28 @@ function StakingListTab() {
                     이전
                   </button>
                   
-                  {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((page) => (
-                    <button
-                      key={page}
-                      onClick={() => handlePageChange(page)}
-                      className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
-                        page === currentPage
-                          ? 'z-10 bg-quantum-50 border-quantum-500 text-quantum-600'
-                          : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
-                      }`}
-                    >
-                      {page}
-                    </button>
-                  ))}
+                  {generatePagination(currentPage, pagination.totalPages).map((page, index) => {
+                    if (typeof page === 'string') {
+                      return (
+                        <span key={`ellipsis-${index}`} className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
+                          ...
+                        </span>
+                      );
+                    }
+                    return (
+                      <button
+                        key={page}
+                        onClick={() => handlePageChange(page)}
+                        className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                          page === currentPage
+                            ? 'z-10 bg-quantum-50 border-quantum-500 text-quantum-600'
+                            : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    );
+                  })}
                   
                   <button
                     onClick={() => handlePageChange(currentPage + 1)}
@@ -1224,11 +1296,6 @@ export default function AllStakingsPage() {
     toast.success('로그아웃되었습니다.')
   }
 
-  // 로그인 처리
-  const handleLogin = () => {
-    setIsAuthenticated(true)
-  }
-
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-quantum-50 to-quantum-100 flex items-center justify-center">
@@ -1242,7 +1309,7 @@ export default function AllStakingsPage() {
 
   // 인증되지 않은 경우 로그인 폼 표시
   if (!isAuthenticated) {
-    return <AdminLoginForm onLogin={handleLogin} />
+    return <AdminLoginForm onLogin={() => setIsAuthenticated(true)} />
   }
 
   const tabs = [
