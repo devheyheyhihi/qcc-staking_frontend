@@ -9,8 +9,6 @@ import { useWallet } from '@/lib/WalletContext';
 import { StakingFormData, StakingRecord, StakingStats } from '@/types/staking';
 import { 
   getStakingPeriods,
-  findStakingPeriodSync,
-  STAKING_PERIODS,
   calculateReward,
   formatNumber,
   formatDate
@@ -40,20 +38,33 @@ export default function Home() {
 
     try {
       setLoading(true);
+      
+      // 실제 이자율 데이터를 API에서 가져오기
+      const stakingPeriods = await getStakingPeriods();
       const response = await stakingApi.getStakingsByWallet(walletState.address);
       
       if (response.success) {
-        // API 응답을 StakingRecord 형식으로 변환
-        const records: StakingRecord[] = response.data.map(item => ({
-          id: item.id.toString(),
-          amount: item.stakedAmount,
-          period: findStakingPeriodSync(item.stakingPeriod.toString()) || STAKING_PERIODS[0],
-          startDate: new Date(item.startDate),
-          endDate: new Date(item.endDate),
-          status: item.status as 'pending' | 'active' | 'completed' | 'cancelled',
-          expectedReward: item.expectedReward,
-          actualReward: item.actualReward,
-        }));
+        // API 응답을 StakingRecord 형식으로 변환 (실제 API 이자율 사용)
+        const records: StakingRecord[] = response.data.map(item => {
+          // 실제 API에서 가져온 이자율 데이터에서 해당 기간을 찾기
+          const period = stakingPeriods.find(p => p.id === item.stakingPeriod.toString()) || {
+            id: item.stakingPeriod.toString(),
+            name: `${item.stakingPeriod}일`,
+            days: item.stakingPeriod,
+            apy: item.interestRate, // DB에서 가져온 실제 이자율 사용
+          };
+          
+          return {
+            id: item.id.toString(),
+            amount: item.stakedAmount,
+            period: period,
+            startDate: new Date(item.startDate),
+            endDate: new Date(item.endDate),
+            status: item.status as 'pending' | 'active' | 'completed' | 'cancelled',
+            expectedReward: item.expectedReward,
+            actualReward: item.actualReward,
+          };
+        });
         
         setStakingRecords(records);
       }
