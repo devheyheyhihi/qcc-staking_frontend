@@ -28,7 +28,7 @@ export default function StakingForm({ walletBalance, walletAddress, privateKey, 
 
   const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<StakingFormData>({
     defaultValues: {
-      periodId: '30',
+      periodId: '365',
       walletAddress: '',
     }
   });
@@ -42,9 +42,9 @@ export default function StakingForm({ walletBalance, walletAddress, privateKey, 
         const periods = await getStakingPeriods();
         setStakingPeriods(periods);
         
-        // 첫 번째 기간을 기본값으로 설정
+        // 네 번째 기간을 기본값으로 설정
         if (periods.length > 0) {
-          setValue('periodId', periods[0].id);
+          setValue('periodId', periods[3].id);
         }
 
         // 스테이킹 지갑 주소 로드
