@@ -19,7 +19,7 @@ interface Staking {
   actualReward?: number
   transactionHash: string
   returnTransactionHash?: string
-  status: 'active' | 'completed' | 'cancelled'
+  status: 'active' | 'completed' | 'cancelled' | 'invalid'
   createdAt: string
   updatedAt: string
 }
@@ -53,13 +53,15 @@ interface InterestRateResponse {
 const STATUS_COLORS = {
   active: 'bg-green-100 text-green-800',
   completed: 'bg-blue-100 text-blue-800',
-  cancelled: 'bg-red-100 text-red-800'
+  cancelled: 'bg-red-100 text-red-800',
+  invalid: 'bg-yellow-100 text-yellow-800'
 }
 
 const STATUS_LABELS = {
   active: '활성',
   completed: '완료',
-  cancelled: '취소됨'
+  cancelled: '취소됨',
+  invalid: 'invalid'
 }
 
 // 관리자 로그인 컴포넌트
@@ -175,6 +177,7 @@ function StakingListTab() {
   const [loading, setLoading] = useState(true)
   const [currentPage, setCurrentPage] = useState(1)
   const [statusFilter, setStatusFilter] = useState<string>('')
+  const [searchQuery, setSearchQuery] = useState<string>('')
   const [limit, setLimit] = useState(20)
   const [selectedStaking, setSelectedStaking] = useState<Staking | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -213,6 +216,9 @@ function StakingListTab() {
       if (status) {
         params.append('status', status)
       }
+      if (searchQuery.trim()) {
+        params.append('search', searchQuery.trim())
+      }
 
       const response = await fetch(`${API_BASE_URL}/staking/all?${params}`)
       const data: ApiResponse = await response.json()
@@ -234,7 +240,7 @@ function StakingListTab() {
   useEffect(() => {
     fetchStakings(currentPage, statusFilter || undefined)
     fetchTotalStats()
-  }, [currentPage, statusFilter, limit])
+  }, [currentPage, statusFilter, limit, searchQuery])
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page)
@@ -293,6 +299,56 @@ function StakingListTab() {
 
   const handleCancelStaking = () => {
     setIsCancelModalOpen(true)
+  }
+
+  const handleRevalidateStaking = async () => {
+    if (!selectedStaking) return
+    const confirmed = window.confirm('이 스테이킹을 재검증할까요?')
+    if (!confirmed) return
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/staking/${selectedStaking.id}/revalidate`, {
+        method: 'PUT'
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
+        toast.success(result.message || '재검증이 완료되었습니다.')
+        fetchStakings(currentPage, statusFilter)
+        closeModal()
+      } else {
+        toast.error(result.message || '재검증에 실패했습니다.')
+      }
+    } catch (error) {
+      console.error('재검증 오류:', error)
+      toast.error('재검증 중 오류가 발생했습니다.')
+    }
+  }
+
+  const handleDeleteInvalidStaking = async () => {
+    if (!selectedStaking) return
+    const confirmed = window.confirm('이 스테이킹을 삭제할까요? 이 작업은 되돌릴 수 없습니다.')
+    if (!confirmed) return
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/staking/${selectedStaking.id}`, {
+        method: 'DELETE'
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
+        toast.success('스테이킹이 삭제되었습니다.')
+        fetchStakings(currentPage, statusFilter)
+        closeModal()
+      } else {
+        toast.error(result.message || '삭제에 실패했습니다.')
+      }
+    } catch (error) {
+      console.error('삭제 오류:', error)
+      toast.error('삭제 중 오류가 발생했습니다.')
+    }
   }
 
   const confirmCancelStaking = async () => {
@@ -401,6 +457,18 @@ function StakingListTab() {
       <div className="bg-white rounded-lg shadow-md p-6 mb-6">
         <div className="flex flex-wrap gap-4 items-center">
           <div className="flex items-center space-x-2">
+            <label className="text-sm font-medium text-gray-700">검색:</label>
+            <input
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value)
+                setCurrentPage(1)
+              }}
+              placeholder="지갑 주소 또는 트랜잭션 해시"
+              className="border border-gray-300 rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-quantum-500 w-64"
+            />
+          </div>
+          <div className="flex items-center space-x-2">
             <label className="text-sm font-medium text-gray-700">상태 필터:</label>
             <select
               value={statusFilter}
@@ -411,6 +479,7 @@ function StakingListTab() {
               <option value="active">활성</option>
               <option value="completed">완료</option>
               <option value="cancelled">취소됨</option>
+              <option value="invalid">invalid</option>
             </select>
           </div>
 
@@ -606,6 +675,22 @@ function StakingListTab() {
                     >
                       스테이킹 취소
                     </button>
+                  )}
+                  {selectedStaking.status === 'invalid' && (
+                    <>
+                      <button
+                        onClick={handleRevalidateStaking}
+                        className="px-4 py-2 bg-quantum-600 text-white rounded-lg hover:bg-quantum-700 transition-colors text-sm font-medium"
+                      >
+                        재검증
+                      </button>
+                      <button
+                        onClick={handleDeleteInvalidStaking}
+                        className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
+                      >
+                        삭제
+                      </button>
+                    </>
                   )}
                   <button
                     onClick={closeModal}

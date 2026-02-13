@@ -24,6 +24,8 @@ export default function StakingForm({ walletBalance, walletAddress, privateKey, 
   const [stakingWalletAddress, setStakingWalletAddress] = useState<string>('');
   const [stakingPeriods, setStakingPeriods] = useState<StakingPeriod[]>([]);
   const [periodsLoading, setPeriodsLoading] = useState<boolean>(true);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [pendingData, setPendingData] = useState<StakingFormData | null>(null);
   const { updateBalance } = useWallet();
 
   const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<StakingFormData>({
@@ -83,8 +85,18 @@ export default function StakingForm({ walletBalance, walletAddress, privateKey, 
   const amountNumber = Number(watchAmount) || 0;
   const expectedReward = selectedPeriod ? calculateReward(amountNumber, selectedPeriod.apy, selectedPeriod.days) : 0;
   const totalReturn = selectedPeriod ? calculateTotalReturn(amountNumber, selectedPeriod.apy, selectedPeriod.days) : amountNumber;
+  const pendingAmountNumber = pendingData ? Number(pendingData.amount) || 0 : 0;
+  const pendingPeriod = pendingData
+    ? stakingPeriods.find(p => p.id === pendingData.periodId) || selectedPeriod
+    : selectedPeriod;
+  const pendingExpectedReward = pendingPeriod
+    ? calculateReward(pendingAmountNumber, pendingPeriod.apy, pendingPeriod.days)
+    : 0;
+  const pendingTotalReturn = pendingPeriod
+    ? calculateTotalReturn(pendingAmountNumber, pendingPeriod.apy, pendingPeriod.days)
+    : pendingAmountNumber;
 
-  const onFormSubmit = async (data: StakingFormData) => {
+  const executeStaking = async (data: StakingFormData) => {
     if (!stakingWalletAddress) {
       toast.error('스테이킹 지갑 주소를 불러오는 중입니다. 잠시 후 다시 시도해주세요.');
       return;
@@ -153,6 +165,18 @@ export default function StakingForm({ walletBalance, walletAddress, privateKey, 
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const onFormSubmit = (data: StakingFormData) => {
+    setPendingData(data);
+    setIsConfirmOpen(true);
+  };
+
+  const confirmStaking = async () => {
+    if (!pendingData) return;
+    setIsConfirmOpen(false);
+    await executeStaking(pendingData);
+    setPendingData(null);
   };
 
   // 로딩 중일 때 표시
@@ -323,6 +347,65 @@ export default function StakingForm({ walletBalance, walletAddress, privateKey, 
         </button>
       </form>
 
+      {/* 스테이킹 확인 모달 */}
+      {isConfirmOpen && pendingData && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-lg w-full">
+            <div className="p-6">
+              <h3 className="text-xl font-bold text-gray-900 mb-2">스테이킹 확인</h3>
+              <p className="text-sm text-gray-600 mb-4">
+                아래 내용으로 스테이킹을 진행할까요?
+              </p>
+
+              <div className="space-y-3 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">스테이킹 금액</span>
+                  <span className="font-semibold text-gray-900">{formatNumber(pendingAmountNumber)} QCC</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">기간</span>
+                  <span className="font-semibold text-gray-900">{pendingPeriod?.name || '-'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">예상 이자</span>
+                  <span className="font-semibold text-quantum-600">{formatNumber(pendingExpectedReward)} QCC</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">총 수령액</span>
+                  <span className="font-semibold text-green-600">{formatNumber(pendingTotalReturn)} QCC</span>
+                </div>
+                <div className="pt-2 border-t">
+                  <div className="text-gray-600 mb-1">전송 주소</div>
+                  <div className="font-mono text-xs bg-gray-50 p-2 rounded break-all">
+                    {stakingWalletAddress}
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-6 flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsConfirmOpen(false);
+                    setPendingData(null);
+                  }}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                >
+                  취소
+                </button>
+                <button
+                  type="button"
+                  onClick={confirmStaking}
+                  className="flex-1 px-4 py-2 bg-quantum-600 text-white rounded-lg hover:bg-quantum-700"
+                >
+                  확인하고 진행
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 주의사항 */}
       <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
         <h4 className="text-sm font-semibold text-yellow-800 mb-2">주의사항</h4>
@@ -333,6 +416,19 @@ export default function StakingForm({ walletBalance, walletAddress, privateKey, 
           <li>• 블록체인 전송 수수료가 별도로 발생할 수 있습니다</li>
         </ul>
       </div>
+
+      {/* 전송 진행 중 전체 화면 레이어 */}
+      {isLoading && (
+        <div className="fixed inset-0 z-[60] bg-black bg-opacity-70 flex items-center justify-center">
+          <div className="bg-white rounded-lg shadow-xl px-6 py-5 text-center max-w-sm w-full">
+            <div className="mx-auto mb-3 h-10 w-10 rounded-full border-4 border-quantum-200 border-t-quantum-600 animate-spin"></div>
+            <div className="text-lg font-semibold text-gray-900">화면을 나가지 마세요</div>
+            <div className="mt-1 text-sm text-gray-600">
+              블록체인 전송이 완료될 때까지 잠시만 기다려주세요.
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
-} 
+}

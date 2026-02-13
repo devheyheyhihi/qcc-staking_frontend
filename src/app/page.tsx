@@ -60,7 +60,7 @@ export default function Home() {
             period: period,
             startDate: new Date(item.startDate),
             endDate: new Date(item.endDate),
-            status: item.status as 'pending' | 'active' | 'completed' | 'cancelled',
+            status: (item.status === 'invalid' ? 'pending' : item.status) as 'pending' | 'active' | 'completed' | 'cancelled',
             expectedReward: item.expectedReward,
             actualReward: item.actualReward,
           };
